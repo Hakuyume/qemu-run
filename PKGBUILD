@@ -15,5 +15,5 @@ package() {
     install -m 755 "$srcdir/qemu-run" "$pkgdir/usr/bin/"
 
     install -m 755 -d "$pkgdir/usr/lib/systemd/system"
-    install -m 755 "$srcdir/qemu@.service" "$pkgdir/usr/lib/systemd/system"
+    install -m 644 "$srcdir/qemu@.service" "$pkgdir/usr/lib/systemd/system"
 }
