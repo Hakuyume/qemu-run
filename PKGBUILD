@@ -1,7 +1,7 @@
 pkgname=qemu-run
 pkgver=0.1
 pkgrel=1
-pkgdesc='A simple wrapper of QEMU'
+pkgdesc='A simple wrapper for QEMU'
 arch=('x86_64')
 depends=('python' 'python-yaml' 'qemu-headless' 'ovmf' 'socat')
 options=(!strip)
