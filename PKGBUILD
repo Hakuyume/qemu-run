@@ -1,5 +1,5 @@
 pkgname=qemu-run
-pkgver=0.2.0
+pkgver=0.2.1
 pkgrel=1
 pkgdesc='A simple wrapper for QEMU'
 arch=('x86_64')
@@ -14,8 +14,13 @@ prepare() {
 }
 
 build() {
-    cd "$srcdir/$pkgname"
+    cd "$srcdir/$pkgname/"
     cargo build --release
+}
+
+check() {
+    cd "$srcdir/$pkgname/"
+    cargo test --release
 }
 
 package() {

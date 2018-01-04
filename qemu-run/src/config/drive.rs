@@ -30,3 +30,35 @@ impl Drive {
         vec_from!["-drive", param]
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use serde_yaml;
+    use super::Drive;
+
+    #[test]
+    fn default() {
+        let drive: Drive = serde_yaml::from_str("{file: /dev/sda}").unwrap();
+        assert_eq!(drive.gen_params(), ["-drive", "file=/dev/sda"]);
+    }
+
+    #[test]
+    fn all() {
+        let drive: Drive = serde_yaml::from_str("{file: /dev/sda, format: raw, discard: true}")
+            .unwrap();
+        assert_eq!(drive.gen_params(),
+                   ["-drive", "file=/dev/sda,format=raw,discard=on"]);
+    }
+
+    #[test]
+    #[should_panic]
+    fn unknown() {
+        let _: Drive = serde_yaml::from_str("{unknown: unknown}").unwrap();
+    }
+
+    #[test]
+    #[should_panic]
+    fn unknown_format() {
+        let _: Drive = serde_yaml::from_str("{file: /dev/sda, format: unknown}").unwrap();
+    }
+}

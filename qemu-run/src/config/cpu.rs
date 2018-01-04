@@ -25,3 +25,31 @@ impl Cpu {
         params
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use serde_yaml;
+    use super::Cpu;
+
+    #[test]
+    fn default() {
+        assert!(Cpu::default().gen_params().is_empty());
+    }
+
+    #[test]
+    fn all() {
+        let cpu: Cpu = serde_yaml::from_str("{kvm: true, type: core2duo, cores: 2}").unwrap();
+        assert_eq!(cpu.gen_params(),
+                   ["-enable-kvm",
+                    "-cpu",
+                    "core2duo",
+                    "-smp",
+                    "sockets=1,cores=2"]);
+    }
+
+    #[test]
+    #[should_panic]
+    fn unknown() {
+        let _: Cpu = serde_yaml::from_str("{unknown: unknown}").unwrap();
+    }
+}

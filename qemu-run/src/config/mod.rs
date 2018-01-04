@@ -90,3 +90,59 @@ fn default_name() -> String {
     let mut rng = rand::thread_rng();
     format!("vm-{:04x}", rng.gen::<u16>())
 }
+
+#[cfg(test)]
+mod tests {
+    use serde_yaml;
+    use super::Config;
+
+    #[test]
+    fn readme() {
+        let config: Config = serde_yaml::from_str(r#"
+name: guest
+uefi: true
+cpu:
+  kvm: true
+  type: host
+  cores: 2
+memory: 4G
+drive:
+  - file: /dev/sdb
+    format: raw
+network:
+  - bridge: br0
+  - bridge: br1
+"#)
+                .unwrap();
+        assert_eq!(config.gen_params(),
+                   ["-name",
+                    "guest",
+                    "-monitor",
+                    "unix:/tmp/qemu-monitor-guest.sock,server,nowait",
+                    "-bios",
+                    "/usr/share/ovmf/ovmf_code_x64.bin",
+                    "-enable-kvm",
+                    "-cpu",
+                    "host",
+                    "-smp",
+                    "sockets=1,cores=2",
+                    "-m",
+                    "4G",
+                    "-drive",
+                    "file=/dev/sdb,format=raw",
+                    "-net",
+                    "nic,vlan=0,macaddr=52:54:ff:be:28:bc",
+                    "-net",
+                    "bridge,vlan=0,br=br0",
+                    "-net",
+                    "nic,vlan=1,macaddr=52:54:a9:4c:0b:80",
+                    "-net",
+                    "bridge,vlan=1,br=br1"]);
+    }
+
+    #[test]
+    #[should_panic]
+    fn unknown() {
+        let _: Config = serde_yaml::from_str("{unknown: unknown}").unwrap();
+    }
+}

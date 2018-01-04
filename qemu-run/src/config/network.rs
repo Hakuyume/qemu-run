@@ -28,3 +28,25 @@ impl Network {
         params
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use serde_yaml;
+    use super::Network;
+
+    #[test]
+    fn bridge() {
+        let network: Network = serde_yaml::from_str("{bridge: br0}").unwrap();
+        assert_eq!(network.gen_params("name", 0),
+                   ["-net",
+                    "nic,vlan=0,macaddr=52:54:4a:a3:57:c1",
+                    "-net",
+                    "bridge,vlan=0,br=br0"]);
+    }
+
+    #[test]
+    #[should_panic]
+    fn unknown() {
+        let _: Network = serde_yaml::from_str("{unknown: unknown}").unwrap();
+    }
+}
