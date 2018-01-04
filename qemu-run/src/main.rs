@@ -25,23 +25,28 @@ struct Args {
 }
 
 fn main() {
-    let args: Args = docopt::Docopt::new(USAGE)
-        .and_then(|d| d.deserialize())
-        .unwrap_or_else(|e| e.exit());
+    let mut command = {
+        let args: Args = docopt::Docopt::new(USAGE)
+            .and_then(|d| d.deserialize())
+            .unwrap_or_else(|e| e.exit());
 
-    let config: config::Config = {
-        let reader = fs::File::open(args.arg_config).unwrap();
-        serde_yaml::from_reader(reader).unwrap()
+        let config: config::Config = {
+            let reader = fs::File::open(args.arg_config).unwrap();
+            serde_yaml::from_reader(reader).unwrap()
+        };
+
+        let params = config.gen_params();
+        if args.flag_dry_run {
+            println!("{}", params.join(" "));
+            return;
+        }
+
+        let mut command = process::Command::new("qemu-system-x86_64");
+        command.args(params.iter().map(|p| p.as_ref()));
+        command
     };
 
-    let params = config.gen_params();
-    if args.flag_dry_run {
-        println!("{}", params.join(" "));
-    } else {
-        let status = process::Command::new("qemu-system-x86_64")
-            .args(params.iter().map(|p| p.as_ref()))
-            .status()
-            .unwrap();
-        assert!(status.success());
-    }
+    use std::error::Error;
+    use std::os::unix::process::CommandExt;
+    panic!("{}", command.exec().description());
 }
