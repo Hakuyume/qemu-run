@@ -6,6 +6,7 @@ After=network.target
 Type=simple
 Group=wheel
 UMask=002
+ExecStartPre=/usr/bin/cp /usr/share/ovmf/x64/OVMF_VARS.fd /tmp/qemu-ovmf-%i.fd
 ExecStart=/usr/bin/qemu-run /etc/qemu/%i.yaml
 ExecStop=/usr/bin/bash -c "echo system_powerdown | socat - /tmp/qemu-monitor-%i.sock"
 ExecStopPost=/usr/bin/rm -f /tmp/qemu-monitor-%i.sock /tmp/qemu-spice-%i.sock

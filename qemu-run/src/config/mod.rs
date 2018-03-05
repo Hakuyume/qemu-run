@@ -47,7 +47,10 @@ impl Config {
                                    format!("unix:/tmp/qemu-monitor-{}.sock,server,nowait",
                                            self.name)];
         if self.uefi {
-            params.extend(vec_from!["-bios", "/usr/share/ovmf/ovmf_code_x64.bin"]);
+            params.extend(vec_from!["-drive",
+                                    "if=pflash,format=raw,readonly,file=/usr/share/ovmf/x64/OVMF_CODE.fd",
+                                    "-drive",
+                                    format!("if=pflash,format=raw,file=/tmp/qemu-ovmf-{}.fd", self.name)]);
         }
         params.extend(self.cpu.gen_params());
         if let Some(ref memory) = self.memory {
@@ -119,8 +122,10 @@ network:
                     "guest",
                     "-monitor",
                     "unix:/tmp/qemu-monitor-guest.sock,server,nowait",
-                    "-bios",
-                    "/usr/share/ovmf/ovmf_code_x64.bin",
+                    "-drive",
+                    "if=pflash,format=raw,readonly,file=/usr/share/ovmf/x64/OVMF_CODE.fd",
+                    "-drive",
+                    "if=pflash,format=raw,file=/tmp/qemu-ovmf-guest.fd",
                     "-enable-kvm",
                     "-cpu",
                     "host",
