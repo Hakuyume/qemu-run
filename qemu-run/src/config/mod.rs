@@ -135,14 +135,14 @@ network:
                     "4G",
                     "-drive",
                     "file=/dev/sdb,format=raw",
-                    "-net",
-                    "nic,vlan=0,macaddr=52:54:ff:be:28:bc",
-                    "-net",
-                    "bridge,vlan=0,br=br0",
-                    "-net",
-                    "nic,vlan=1,macaddr=52:54:a9:4c:0b:80",
-                    "-net",
-                    "bridge,vlan=1,br=br1"]);
+                    "-device",
+                    "e1000,netdev=net0,mac=52:54:ff:be:28:bc",
+                    "-netdev",
+                    "bridge,id=net0,br=br0",
+                    "-device",
+                    "e1000,netdev=net1,mac=52:54:a9:4c:0b:80",
+                    "-netdev",
+                    "bridge,id=net1,br=br1"]);
     }
 
     #[test]
