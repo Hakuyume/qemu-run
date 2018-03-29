@@ -41,18 +41,18 @@ pub struct Config {
 
 impl Config {
     pub fn gen_params(&self) -> Vec<Cow<str>> {
-        let mut params =
-            vec_from!["-name",
-                      self.name.as_str(),
-                      "-monitor",
-                      format!("unix:/tmp/qemu-{}/monitor.sock,server,nowait", self.name),
-                      "-serial",
-                      format!("unix:/tmp/qemu-{}/serial.sock,server,nowait", self.name)];
+        let dir = format!("/tmp/qemu-{}", self.name);
+        let mut params = vec_from!["-name",
+                                   self.name.as_str(),
+                                   "-monitor",
+                                   format!("unix:{}/monitor.sock,server,nowait", dir),
+                                   "-serial",
+                                   format!("unix:{}/serial.sock,server,nowait", dir)];
         if self.uefi {
             params.extend(vec_from!["-drive",
                                     "if=pflash,format=raw,readonly,file=/usr/share/ovmf/x64/OVMF_CODE.fd",
                                     "-drive",
-                                    format!("if=pflash,format=raw,file=/tmp/qemu-{}/OVMF_VARS.fd", self.name)]);
+                                    format!("if=pflash,format=raw,file={}/OVMF_VARS.fd", dir)]);
         }
         params.extend(self.cpu.gen_params());
         if let Some(ref memory) = self.memory {
@@ -68,8 +68,7 @@ impl Config {
             params.extend(vec_from!["-vga",
                                     "qxl",
                                     "-spice",
-                                    format!("disable-ticketing,unix,addr=/tmp/qemu-{}/spice.sock",
-                                            self.name)]);
+                                    format!("disable-ticketing,unix,addr={}/spice.sock", dir)]);
         }
         if self.sound {
             params.extend(vec_from!["-device", "intel-hda", "-device", "hda-micro"]);
