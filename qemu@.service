@@ -6,12 +6,11 @@ After=network.target
 Type=simple
 Group=wheel
 UMask=002
+ExecStartPre=-/usr/bin/rm -r /tmp/qemu-%i
 ExecStartPre=/usr/bin/install -D /usr/share/ovmf/x64/OVMF_VARS.fd /tmp/qemu-%i/OVMF_VARS.fd
 ExecStart=/usr/bin/qemu-run /etc/qemu/%i.yaml
 ExecStop=/usr/bin/socat system:'echo system_powerdown' /tmp/qemu-%i/monitor.sock
-ExecStopPost=/usr/bin/rm -r /tmp/qemu-%i
-TimeoutStopSec=300
-KillMode=none
+TimeoutStopSec=60
 
 [Install]
 WantedBy=multi-user.target
