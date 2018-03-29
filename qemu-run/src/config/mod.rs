@@ -44,13 +44,13 @@ impl Config {
         let mut params = vec_from!["-name",
                                    self.name.as_str(),
                                    "-monitor",
-                                   format!("unix:/tmp/qemu-monitor-{}.sock,server,nowait",
+                                   format!("unix:/tmp/qemu-{}/monitor.sock,server,nowait",
                                            self.name)];
         if self.uefi {
             params.extend(vec_from!["-drive",
                                     "if=pflash,format=raw,readonly,file=/usr/share/ovmf/x64/OVMF_CODE.fd",
                                     "-drive",
-                                    format!("if=pflash,format=raw,file=/tmp/qemu-ovmf-{}.fd", self.name)]);
+                                    format!("if=pflash,format=raw,file=/tmp/qemu-{}/OVMF_VARS.fd", self.name)]);
         }
         params.extend(self.cpu.gen_params());
         if let Some(ref memory) = self.memory {
@@ -66,7 +66,7 @@ impl Config {
             params.extend(vec_from!["-vga",
                                     "qxl",
                                     "-spice",
-                                    format!("disable-ticketing,unix,addr=/tmp/qemu-spice-{}.sock",
+                                    format!("disable-ticketing,unix,addr=/tmp/qemu-{}/spice.sock",
                                             self.name)]);
         }
         if self.sound {
@@ -121,11 +121,11 @@ network:
                    ["-name",
                     "guest",
                     "-monitor",
-                    "unix:/tmp/qemu-monitor-guest.sock,server,nowait",
+                    "unix:/tmp/qemu-guest/monitor.sock,server,nowait",
                     "-drive",
                     "if=pflash,format=raw,readonly,file=/usr/share/ovmf/x64/OVMF_CODE.fd",
                     "-drive",
-                    "if=pflash,format=raw,file=/tmp/qemu-ovmf-guest.fd",
+                    "if=pflash,format=raw,file=/tmp/qemu-guest/OVMF_VARS.fd",
                     "-enable-kvm",
                     "-cpu",
                     "host",
