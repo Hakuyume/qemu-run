@@ -41,11 +41,13 @@ pub struct Config {
 
 impl Config {
     pub fn gen_params(&self) -> Vec<Cow<str>> {
-        let mut params = vec_from!["-name",
-                                   self.name.as_str(),
-                                   "-monitor",
-                                   format!("unix:/tmp/qemu-{}/monitor.sock,server,nowait",
-                                           self.name)];
+        let mut params =
+            vec_from!["-name",
+                      self.name.as_str(),
+                      "-monitor",
+                      format!("unix:/tmp/qemu-{}/monitor.sock,server,nowait", self.name),
+                      "-serial",
+                      format!("unix:/tmp/qemu-{}/serial.sock,server,nowait", self.name)];
         if self.uefi {
             params.extend(vec_from!["-drive",
                                     "if=pflash,format=raw,readonly,file=/usr/share/ovmf/x64/OVMF_CODE.fd",
@@ -122,6 +124,8 @@ network:
                     "guest",
                     "-monitor",
                     "unix:/tmp/qemu-guest/monitor.sock,server,nowait",
+                    "-serial",
+                    "unix:/tmp/qemu-guest/serial.sock,server,nowait",
                     "-drive",
                     "if=pflash,format=raw,readonly,file=/usr/share/ovmf/x64/OVMF_CODE.fd",
                     "-drive",
