@@ -9,6 +9,7 @@ pub struct Rtc {
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "snake_case")]
 enum Base {
+    Utc,
     Localtime,
 }
 
@@ -16,6 +17,7 @@ impl Rtc {
     pub fn gen_params(&self) -> Vec<Cow<str>> {
         if let Some(ref base) = self.base {
             let base = match base {
+                &Base::Utc => "utc",
                 &Base::Localtime => "localtime",
             };
             vec_from!["-rtc", format!("base={}", base)]
