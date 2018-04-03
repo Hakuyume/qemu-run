@@ -41,18 +41,20 @@ pub struct Config {
 
 impl Config {
     pub fn gen_params(&self) -> Vec<Cow<str>> {
-        let dir = format!("/tmp/qemu-{}", self.name);
+        let var_dir = format!("/var/lib/qemu/{}", self.name);
+        let sock_dir = format!("/tmp/qemu/{}", self.name);
+
         let mut params = vec_from!["-name",
                                    self.name.as_str(),
                                    "-monitor",
-                                   format!("unix:{}/monitor.sock,server,nowait", dir),
+                                   format!("unix:{}/monitor.sock,server,nowait", sock_dir),
                                    "-serial",
-                                   format!("unix:{}/serial.sock,server,nowait", dir)];
+                                   format!("unix:{}/serial.sock,server,nowait", sock_dir)];
         if self.uefi {
             params.extend(vec_from!["-drive",
                                     "if=pflash,format=raw,readonly,file=/usr/share/ovmf/x64/OVMF_CODE.fd",
                                     "-drive",
-                                    format!("if=pflash,format=raw,file={}/OVMF_VARS.fd", dir)]);
+                                    format!("if=pflash,format=raw,file={}/OVMF_VARS.fd", var_dir)]);
         }
         params.extend(self.cpu.gen_params());
         if let Some(ref memory) = self.memory {
@@ -68,7 +70,8 @@ impl Config {
             params.extend(vec_from!["-vga",
                                     "qxl",
                                     "-spice",
-                                    format!("disable-ticketing,unix,addr={}/spice.sock", dir)]);
+                                    format!("disable-ticketing,unix,addr={}/spice.sock",
+                                            sock_dir)]);
         }
         if self.sound {
             params.extend(vec_from!["-device", "intel-hda", "-device", "hda-micro"]);
@@ -122,13 +125,13 @@ network:
                    ["-name",
                     "guest",
                     "-monitor",
-                    "unix:/tmp/qemu-guest/monitor.sock,server,nowait",
+                    "unix:/tmp/qemu/guest/monitor.sock,server,nowait",
                     "-serial",
-                    "unix:/tmp/qemu-guest/serial.sock,server,nowait",
+                    "unix:/tmp/qemu/guest/serial.sock,server,nowait",
                     "-drive",
                     "if=pflash,format=raw,readonly,file=/usr/share/ovmf/x64/OVMF_CODE.fd",
                     "-drive",
-                    "if=pflash,format=raw,file=/tmp/qemu-guest/OVMF_VARS.fd",
+                    "if=pflash,format=raw,file=/var/lib/qemu/guest/OVMF_VARS.fd",
                     "-enable-kvm",
                     "-cpu",
                     "host",

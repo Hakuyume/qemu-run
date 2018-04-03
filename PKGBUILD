@@ -7,7 +7,7 @@ depends=('qemu-headless' 'ovmf' 'socat')
 makedepends=('cargo' 'rust')
 
 source=('qemu@.service')
-sha256sums=('bd6ac77d8b53356b0afb37815d62b3844c41c97a23487c8e00a1c22d4fb4b7c0')
+sha256sums=('768ee7a351bbacb170d25266c5c2310eb9f92536f29d9d7db7120fcc90f88fed')
 
 prepare() {
     cp -au "$startdir/$pkgname" "$srcdir/"
