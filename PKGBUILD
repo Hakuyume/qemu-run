@@ -1,13 +1,13 @@
 pkgname=qemu-run
 pkgver=0.2.4
-pkgrel=1
+pkgrel=2
 pkgdesc='A simple wrapper for QEMU'
 arch=('x86_64')
 depends=('qemu-headless' 'ovmf' 'socat')
 makedepends=('cargo' 'rust')
 
 source=('qemu@.service')
-sha256sums=('768ee7a351bbacb170d25266c5c2310eb9f92536f29d9d7db7120fcc90f88fed')
+sha256sums=('c4db1ed596f2cff388baf7a9474c989363429d4df779b1b19f15b14f047cad93')
 
 prepare() {
     cp -au "$startdir/$pkgname" "$srcdir/"
