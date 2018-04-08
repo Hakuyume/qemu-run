@@ -41,6 +41,8 @@ fn main() {
             return;
         }
 
+        config.prepare().unwrap();
+
         let mut command = process::Command::new("qemu-system-x86_64");
         command.args(params.iter().map(|p| p.as_ref()));
         command

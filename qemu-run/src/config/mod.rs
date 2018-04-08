@@ -1,6 +1,9 @@
 extern crate rand;
 
 use std::borrow::Cow;
+use std::error;
+use std::fs;
+use std::path;
 
 macro_rules! vec_from {
     ($($x:expr),*) => {
@@ -41,20 +44,19 @@ pub struct Config {
 
 impl Config {
     pub fn gen_params(&self) -> Vec<Cow<str>> {
-        let var_dir = format!("/var/lib/qemu/{}", self.name);
-        let sock_dir = format!("/tmp/qemu/{}", self.name);
-
-        let mut params = vec_from!["-name",
-                                   self.name.as_str(),
-                                   "-monitor",
-                                   format!("unix:{}/monitor.sock,server,nowait", sock_dir),
-                                   "-serial",
-                                   format!("unix:{}/serial.sock,server,nowait", sock_dir)];
+        let mut params =
+            vec_from!["-name",
+                      self.name.as_str(),
+                      "-monitor",
+                      format!("unix:/tmp/qemu/{}/monitor.sock,server,nowait", self.name),
+                      "-serial",
+                      format!("unix:/tmp/qemu/{}/serial.sock,server,nowait", self.name)];
         if self.uefi {
             params.extend(vec_from!["-drive",
                                     "if=pflash,format=raw,readonly,file=/usr/share/ovmf/x64/OVMF_CODE.fd",
                                     "-drive",
-                                    format!("if=pflash,format=raw,file={}/OVMF_VARS.fd", var_dir)]);
+                                    format!("if=pflash,format=raw,file=/var/lib/qemu/{}/OVMF_VARS.fd",
+                                            self.name)]);
         }
         params.extend(self.cpu.gen_params());
         if let Some(ref memory) = self.memory {
@@ -70,8 +72,8 @@ impl Config {
             params.extend(vec_from!["-vga",
                                     "qxl",
                                     "-spice",
-                                    format!("disable-ticketing,unix,addr={}/spice.sock",
-                                            sock_dir)]);
+                                    format!("disable-ticketing,unix,addr=/tmp/qemu/{}/spice.sock",
+                                            self.name)]);
         }
         if self.sound {
             params.extend(vec_from!["-device", "intel-hda", "-device", "hda-micro"]);
@@ -89,6 +91,24 @@ impl Config {
             params.extend(option.iter().map(|s| s.as_str().into()));
         }
         params
+    }
+
+    pub fn prepare(&self) -> Result<(), Box<error::Error>> {
+        let sock_dir = path::PathBuf::from(format!("/tmp/qemu/{}", self.name));
+        fs::create_dir_all(&sock_dir)?;
+        for sock in &["monitor", "serial", "spice"] {
+            let _ = fs::remove_file(sock_dir.join(format!("{}.sock", sock)));
+        }
+
+        if self.uefi {
+            let ovmf_vars = path::PathBuf::from(format!("/var/lib/qemu/{}/OVMF_VARS.fd",
+                                                        self.name));
+            if !ovmf_vars.exists() {
+                fs::create_dir_all(ovmf_vars.parent().unwrap())?;
+                fs::copy("/usr/share/ovmf/x64/OVMF_VARS.fd", ovmf_vars)?;
+            }
+        }
+        Ok(())
     }
 }
 
