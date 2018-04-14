@@ -1,4 +1,4 @@
-use std::borrow::Cow;
+use std::borrow;
 
 #[derive(Debug, Default, Deserialize)]
 #[serde(deny_unknown_fields)]
@@ -14,7 +14,7 @@ enum Base {
 }
 
 impl Rtc {
-    pub fn gen_params(&self) -> Vec<Cow<str>> {
+    pub fn gen_params(&self) -> Vec<borrow::Cow<str>> {
         if let Some(ref base) = self.base {
             let base = match base {
                 &Base::Utc => "utc",

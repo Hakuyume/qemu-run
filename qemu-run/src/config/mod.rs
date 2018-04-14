@@ -1,9 +1,5 @@
-extern crate rand;
-
-use std::borrow::Cow;
+use std::borrow;
 use std::error;
-use std::fs;
-use std::path;
 
 macro_rules! vec_from {
     ($($x:expr),*) => {
@@ -15,12 +11,11 @@ mod cpu;
 mod drive;
 mod network;
 mod rtc;
+mod usb;
 
 #[derive(Debug, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct Config {
-    #[serde(default = "default_name")]
-    name: String,
     #[serde(default)]
     uefi: bool,
     #[serde(default)]
@@ -39,24 +34,28 @@ pub struct Config {
     #[serde(default)]
     rtc: rtc::Rtc,
     #[serde(default)]
+    usb: usb::Usb,
+    #[serde(default)]
     option: Vec<Vec<String>>,
 }
 
 impl Config {
-    pub fn gen_params(&self) -> Vec<Cow<str>> {
-        let mut params =
-            vec_from!["-name",
-                      self.name.as_str(),
-                      "-monitor",
-                      format!("unix:/tmp/qemu/{}/monitor.sock,server,nowait", self.name),
-                      "-serial",
-                      format!("unix:/tmp/qemu/{}/serial.sock,server,nowait", self.name)];
+    pub fn gen_params<'a>(&'a self,
+                          name: &'a str)
+                          -> Result<Vec<borrow::Cow<'a, str>>, Box<error::Error>> {
+        let mut params = vec_from!["-name",
+                                   name,
+                                   "-monitor",
+                                   format!("unix:/run/qemu/{}/monitor.sock,server,nowait", name),
+                                   "-serial",
+                                   format!("unix:/run/qemu/{}/serial.sock,server,nowait", name)];
         if self.uefi {
-            params.extend(vec_from!["-drive",
-                                    "if=pflash,format=raw,readonly,file=/usr/share/ovmf/x64/OVMF_CODE.fd",
-                                    "-drive",
-                                    format!("if=pflash,format=raw,file=/var/lib/qemu/{}/OVMF_VARS.fd",
-                                            self.name)]);
+            params.extend(vec_from![
+                "-drive",
+                "if=pflash,format=raw,readonly,file=/usr/share/ovmf/x64/OVMF_CODE.fd",
+                "-drive",
+                format!("if=pflash,format=raw,file=/var/lib/qemu/{}/OVMF_VARS.fd",
+                        name)]);
         }
         params.extend(self.cpu.gen_params());
         if let Some(ref memory) = self.memory {
@@ -66,14 +65,14 @@ impl Config {
             params.extend(drive.gen_params());
         }
         for (i, network) in self.network.iter().enumerate() {
-            params.extend(network.gen_params(&self.name, i));
+            params.extend(network.gen_params(name, i));
         }
         if self.spice {
             params.extend(vec_from!["-vga",
                                     "qxl",
                                     "-spice",
-                                    format!("disable-ticketing,unix,addr=/tmp/qemu/{}/spice.sock",
-                                            self.name)]);
+                                    format!("disable-ticketing,unix,addr=/run/qemu/{}/spice.sock",
+                                            name)]);
         }
         if self.sound {
             params.extend(vec_from!["-device", "intel-hda", "-device", "hda-micro"]);
@@ -87,35 +86,12 @@ impl Config {
                                     "spicevmc,id=spicechannel0,name=vdagent"]);
         }
         params.extend(self.rtc.gen_params());
+        params.extend(self.usb.gen_params()?);
         for option in self.option.iter() {
             params.extend(option.iter().map(|s| s.as_str().into()));
         }
-        params
+        Ok(params)
     }
-
-    pub fn prepare(&self) -> Result<(), Box<error::Error>> {
-        let sock_dir = path::PathBuf::from(format!("/tmp/qemu/{}", self.name));
-        fs::create_dir_all(&sock_dir)?;
-        for sock in &["monitor", "serial", "spice"] {
-            let _ = fs::remove_file(sock_dir.join(format!("{}.sock", sock)));
-        }
-
-        if self.uefi {
-            let ovmf_vars = path::PathBuf::from(format!("/var/lib/qemu/{}/OVMF_VARS.fd",
-                                                        self.name));
-            if !ovmf_vars.exists() {
-                fs::create_dir_all(ovmf_vars.parent().unwrap())?;
-                fs::copy("/usr/share/ovmf/x64/OVMF_VARS.fd", ovmf_vars)?;
-            }
-        }
-        Ok(())
-    }
-}
-
-fn default_name() -> String {
-    use self::rand::Rng;
-    let mut rng = rand::thread_rng();
-    format!("vm-{:04x}", rng.gen::<u16>())
 }
 
 #[cfg(test)]
@@ -141,13 +117,13 @@ network:
   - bridge: br1
 "#)
                 .unwrap();
-        assert_eq!(config.gen_params(),
+        assert_eq!(config.gen_params().unwrap(),
                    ["-name",
                     "guest",
                     "-monitor",
-                    "unix:/tmp/qemu/guest/monitor.sock,server,nowait",
+                    "unix:/run/qemu/guest/monitor.sock,server,nowait",
                     "-serial",
-                    "unix:/tmp/qemu/guest/serial.sock,server,nowait",
+                    "unix:/run/qemu/guest/serial.sock,server,nowait",
                     "-drive",
                     "if=pflash,format=raw,readonly,file=/usr/share/ovmf/x64/OVMF_CODE.fd",
                     "-drive",

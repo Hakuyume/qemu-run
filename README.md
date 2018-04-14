@@ -24,8 +24,8 @@ You can convert this YAML to command line options by `qemu-run -d`.
 ```
 $ qemu-run -d sample.yaml
 -name guest \
--monitor unix:/tmp/qemu/guest/monitor.sock,server,nowait \
--serial unix:/tmp/qemu/guest/serial.sock,server,nowait \
+-monitor unix:/run/qemu/guest/monitor.sock,server,nowait \
+-serial unix:/run/qemu/guest/serial.sock,server,nowait \
 -drive if=pflash,format=raw,readonly,file=/usr/share/ovmf/x64/OVMF_CODE.fd \
 -drive if=pflash,format=raw,file=/var/lib/qemu/guest/OVMF_VARS.fd \
 -enable-kvm -cpu host -smp sockets=1,cores=2 \

@@ -1,4 +1,4 @@
-use std::borrow::Cow;
+use std::borrow;
 
 #[derive(Debug, Deserialize)]
 #[serde(deny_unknown_fields)]
@@ -16,7 +16,7 @@ enum Format {
 }
 
 impl Drive {
-    pub fn gen_params(&self) -> Vec<Cow<str>> {
+    pub fn gen_params(&self) -> Vec<borrow::Cow<str>> {
         let mut param = format!("file={}", self.file);
         if let Some(ref format) = self.format {
             let format = match format {

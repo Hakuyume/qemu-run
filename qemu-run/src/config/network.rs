@@ -1,6 +1,6 @@
 extern crate sha2;
 
-use std::borrow::Cow;
+use std::borrow;
 
 #[derive(Debug, Deserialize)]
 #[serde(deny_unknown_fields, untagged)]
@@ -9,7 +9,7 @@ pub enum Network {
 }
 
 impl Network {
-    pub fn gen_params(&self, name: &str, index: usize) -> Vec<Cow<str>> {
+    pub fn gen_params(&self, name: &str, index: usize) -> Vec<borrow::Cow<str>> {
         let mac = {
             use self::sha2::Digest;
             let digest = sha2::Sha256::digest_str(&format!("{}:{}", name, index));
