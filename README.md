@@ -5,7 +5,6 @@ This tool configures a virual machine using a YAML file.
 
 Here is a sample YAML file.
 ```yaml
-name: guest
 uefi: true
 cpu:
   kvm: true
@@ -22,7 +21,7 @@ network:
 
 You can convert this YAML to command line options by `qemu-run -d`.
 ```
-$ qemu-run -d sample.yaml
+$ qemu-run -d guest.yaml
 -name guest \
 -monitor unix:/run/qemu/guest/monitor.sock,server,nowait \
 -serial unix:/run/qemu/guest/serial.sock,server,nowait \

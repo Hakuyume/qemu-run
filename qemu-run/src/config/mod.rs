@@ -102,7 +102,6 @@ mod tests {
     #[test]
     fn readme() {
         let config: Config = serde_yaml::from_str(r#"
-name: guest
 uefi: true
 cpu:
   kvm: true
@@ -117,7 +116,7 @@ network:
   - bridge: br1
 "#)
                 .unwrap();
-        assert_eq!(config.gen_params().unwrap(),
+        assert_eq!(config.gen_params("guest").unwrap(),
                    ["-name",
                     "guest",
                     "-monitor",
