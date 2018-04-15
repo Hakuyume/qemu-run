@@ -4,6 +4,7 @@ pipeline:
     commands:
       - pacman -Syu --noconfirm
       - pacman -S --noconfirm --needed base-devel
+      - usermod nobody -d $(sudo -u nobody mktemp -d)
       - 'echo ''nobody ALL=(ALL) NOPASSWD:SETENV: /usr/bin/pacman'' > /etc/sudoers.d/nobody'
       - chown nobody:nobody -R .
       - sudo -u nobody makepkg -s --noconfirm
