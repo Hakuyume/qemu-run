@@ -1,0 +1,5 @@
+pipeline:
+  PKGBUILD:
+    image: base/archlinux
+    commands:
+      - pacman -S --needed base-devel
