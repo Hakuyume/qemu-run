@@ -2,6 +2,7 @@ pipeline:
   PKGBUILD:
     image: base/archlinux
     commands:
-      - pacman -Sy --noconfirm --needed base-devel
+      - pacman -Syu --noconfirm
+      - pacman -S --noconfirm --needed base-devel
       - 'echo ''nobody ALL=(ALL) NOPASSWD:SETENV: /usr/bin/pacman'' > /etc/sudoers.d/nobody'
       - sudo -u nobody makepkg -s --noconfirm
