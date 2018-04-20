@@ -2,18 +2,17 @@ use libusb;
 use std::borrow;
 
 #[derive(Debug, Default, Deserialize)]
-pub struct Usb(Vec<(u16, u16)>);
+pub struct Usb(Option<Vec<(u16, u16)>>);
 
 impl Usb {
     pub fn gen_params(&self) -> Result<Vec<borrow::Cow<str>>, libusb::Error> {
-        if !self.0.is_empty() {
+        if let Some(ref ids) = self.0 {
             let mut params = vec_from!["-device", "nec-usb-xhci,id=xhci"];
 
             let context = libusb::Context::new()?;
             for device in context.devices()?.iter() {
                 if let Ok(desc) = device.device_descriptor() {
-                    if self.0
-                           .iter()
+                    if ids.iter()
                            .any(|id| &(desc.vendor_id(), desc.product_id()) == id) {
                         params.extend(vec_from!["-device", format!(
                             "usb-host,id=usb{0}_{1},bus=xhci.0,hostbus={0},hostaddr={1}",
@@ -36,6 +35,13 @@ mod tests {
     #[test]
     fn default() {
         assert!(Usb::default().gen_params().unwrap().is_empty());
+    }
+
+    #[test]
+    fn empty() {
+        let usb: Usb = serde_yaml::from_str("[]").unwrap();
+        assert_eq!(usb.gen_params().unwrap(),
+                   ["-device", "nec-usb-xhci,id=xhci"]);
     }
 
     #[test]

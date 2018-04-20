@@ -1,6 +1,6 @@
 [package]
 name = "qemu-run"
-version = "0.2.5"
+version = "0.2.6"
 authors = ["Toru Ogawa <Hakuyume@users.noreply.github.com>"]
 
 [dependencies]
