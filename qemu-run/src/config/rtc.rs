@@ -1,3 +1,4 @@
+use serde::Deserialize;
 use std::borrow;
 
 #[derive(Debug, Default, Deserialize)]
@@ -29,8 +30,8 @@ impl Rtc {
 
 #[cfg(test)]
 mod tests {
-    use serde_yaml;
     use super::Rtc;
+    use serde_yaml;
 
     #[test]
     fn default() {

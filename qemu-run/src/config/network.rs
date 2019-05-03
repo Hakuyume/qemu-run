@@ -1,5 +1,5 @@
-extern crate sha2;
-
+use serde::Deserialize;
+use sha2::{Digest, Sha256};
 use std::borrow;
 
 #[derive(Debug, Deserialize)]
@@ -11,19 +11,18 @@ pub enum Network {
 impl Network {
     pub fn gen_params(&self, name: &str, index: usize) -> Vec<borrow::Cow<str>> {
         let mac = {
-            use self::sha2::Digest;
-            let digest = sha2::Sha256::digest_str(&format!("{}:{}", name, index));
-            format!("52:54:{:02x}:{:02x}:{:02x}:{:02x}",
-                    digest[0],
-                    digest[1],
-                    digest[2],
-                    digest[3])
+            let digest = Sha256::digest(format!("{}:{}", name, index).as_bytes());
+            format!(
+                "52:54:{:02x}:{:02x}:{:02x}:{:02x}",
+                digest[0], digest[1], digest[2], digest[3]
+            )
         };
         let mut params = vec_from!["-device", format!("e1000,netdev=net{},mac={}", index, mac)];
         match self {
-            &Network::Bridge { ref bridge } => {
-                params.extend(vec_from!["-netdev", format!("bridge,id=net{},br={}", index, bridge)])
-            }
+            &Network::Bridge { ref bridge } => params.extend(vec_from![
+                "-netdev",
+                format!("bridge,id=net{},br={}", index, bridge)
+            ]),
         }
         params
     }
@@ -31,17 +30,21 @@ impl Network {
 
 #[cfg(test)]
 mod tests {
-    use serde_yaml;
     use super::Network;
+    use serde_yaml;
 
     #[test]
     fn bridge() {
         let network: Network = serde_yaml::from_str("{bridge: br0}").unwrap();
-        assert_eq!(network.gen_params("name", 0),
-                   ["-device",
-                    "e1000,netdev=net0,mac=52:54:4a:a3:57:c1",
-                    "-netdev",
-                    "bridge,id=net0,br=br0"]);
+        assert_eq!(
+            network.gen_params("name", 0),
+            [
+                "-device",
+                "e1000,netdev=net0,mac=52:54:4a:a3:57:c1",
+                "-netdev",
+                "bridge,id=net0,br=br0"
+            ]
+        );
     }
 
     #[test]

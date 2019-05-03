@@ -1,4 +1,5 @@
 use libusb;
+use serde::Deserialize;
 use std::borrow;
 
 #[derive(Debug, Default, Deserialize)]
@@ -12,11 +13,18 @@ impl Usb {
             let context = libusb::Context::new()?;
             for device in context.devices()?.iter() {
                 if let Ok(desc) = device.device_descriptor() {
-                    if ids.iter()
-                           .any(|id| &(desc.vendor_id(), desc.product_id()) == id) {
-                        params.extend(vec_from!["-device", format!(
-                            "usb-host,id=usb{0}_{1},bus=xhci.0,hostbus={0},hostaddr={1}",
-                            device.bus_number(), device.address())]);
+                    if ids
+                        .iter()
+                        .any(|id| &(desc.vendor_id(), desc.product_id()) == id)
+                    {
+                        params.extend(vec_from![
+                            "-device",
+                            format!(
+                                "usb-host,id=usb{0}_{1},bus=xhci.0,hostbus={0},hostaddr={1}",
+                                device.bus_number(),
+                                device.address()
+                            )
+                        ]);
                     }
                 }
             }
@@ -29,8 +37,8 @@ impl Usb {
 
 #[cfg(test)]
 mod tests {
-    use serde_yaml;
     use super::Usb;
+    use serde_yaml;
 
     #[test]
     fn default() {
@@ -40,8 +48,10 @@ mod tests {
     #[test]
     fn empty() {
         let usb: Usb = serde_yaml::from_str("[]").unwrap();
-        assert_eq!(usb.gen_params().unwrap(),
-                   ["-device", "nec-usb-xhci,id=xhci"]);
+        assert_eq!(
+            usb.gen_params().unwrap(),
+            ["-device", "nec-usb-xhci,id=xhci"]
+        );
     }
 
     #[test]

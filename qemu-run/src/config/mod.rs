@@ -1,3 +1,4 @@
+use serde::Deserialize;
 use std::borrow;
 use std::error;
 
@@ -40,22 +41,28 @@ pub struct Config {
 }
 
 impl Config {
-    pub fn gen_params<'a>(&'a self,
-                          name: &'a str)
-                          -> Result<Vec<borrow::Cow<'a, str>>, Box<error::Error>> {
-        let mut params = vec_from!["-name",
-                                   name,
-                                   "-monitor",
-                                   format!("unix:/run/qemu/{}/monitor.sock,server,nowait", name),
-                                   "-serial",
-                                   format!("unix:/run/qemu/{}/serial.sock,server,nowait", name)];
+    pub fn gen_params<'a>(
+        &'a self,
+        name: &'a str,
+    ) -> Result<Vec<borrow::Cow<'a, str>>, Box<error::Error>> {
+        let mut params = vec_from![
+            "-name",
+            name,
+            "-monitor",
+            format!("unix:/run/qemu/{}/monitor.sock,server,nowait", name),
+            "-serial",
+            format!("unix:/run/qemu/{}/serial.sock,server,nowait", name)
+        ];
         if self.uefi {
             params.extend(vec_from![
                 "-drive",
                 "if=pflash,format=raw,readonly,file=/usr/share/ovmf/x64/OVMF_CODE.fd",
                 "-drive",
-                format!("if=pflash,format=raw,file=/var/lib/qemu/{}/OVMF_VARS.fd",
-                        name)]);
+                format!(
+                    "if=pflash,format=raw,file=/var/lib/qemu/{}/OVMF_VARS.fd",
+                    name
+                )
+            ]);
         }
         params.extend(self.cpu.gen_params());
         if let Some(ref memory) = self.memory {
@@ -68,22 +75,25 @@ impl Config {
             params.extend(network.gen_params(name, i));
         }
         if self.spice {
-            params.extend(vec_from!["-vga",
-                                    "qxl",
-                                    "-spice",
-                                    format!("disable-ticketing,unix,addr=/run/qemu/{}/spice.sock",
-                                            name)]);
+            params.extend(vec_from![
+                "-vga",
+                "qxl",
+                "-spice",
+                format!("disable-ticketing,unix,addr=/run/qemu/{}/spice.sock", name)
+            ]);
         }
         if self.sound {
             params.extend(vec_from!["-device", "intel-hda", "-device", "hda-micro"]);
         }
         if self.spice_guest {
-            params.extend(vec_from!["-device",
-                                    "virtio-serial-pci",
-                                    "-device",
-                                    "virtserialport,chardev=spicechannel0,name=com.redhat.spice.0",
-                                    "-chardev",
-                                    "spicevmc,id=spicechannel0,name=vdagent"]);
+            params.extend(vec_from![
+                "-device",
+                "virtio-serial-pci",
+                "-device",
+                "virtserialport,chardev=spicechannel0,name=com.redhat.spice.0",
+                "-chardev",
+                "spicevmc,id=spicechannel0,name=vdagent"
+            ]);
         }
         params.extend(self.rtc.gen_params());
         params.extend(self.usb.gen_params()?);
@@ -96,12 +106,13 @@ impl Config {
 
 #[cfg(test)]
 mod tests {
-    use serde_yaml;
     use super::Config;
+    use serde_yaml;
 
     #[test]
     fn readme() {
-        let config: Config = serde_yaml::from_str(r#"
+        let config: Config = serde_yaml::from_str(
+            r#"
 uefi: true
 cpu:
   kvm: true
@@ -114,36 +125,41 @@ drive:
 network:
   - bridge: br0
   - bridge: br1
-"#)
-                .unwrap();
-        assert_eq!(config.gen_params("guest").unwrap(),
-                   ["-name",
-                    "guest",
-                    "-monitor",
-                    "unix:/run/qemu/guest/monitor.sock,server,nowait",
-                    "-serial",
-                    "unix:/run/qemu/guest/serial.sock,server,nowait",
-                    "-drive",
-                    "if=pflash,format=raw,readonly,file=/usr/share/ovmf/x64/OVMF_CODE.fd",
-                    "-drive",
-                    "if=pflash,format=raw,file=/var/lib/qemu/guest/OVMF_VARS.fd",
-                    "-enable-kvm",
-                    "-cpu",
-                    "host",
-                    "-smp",
-                    "sockets=1,cores=2",
-                    "-m",
-                    "4G",
-                    "-drive",
-                    "file=/dev/sdb,format=raw",
-                    "-device",
-                    "e1000,netdev=net0,mac=52:54:ff:be:28:bc",
-                    "-netdev",
-                    "bridge,id=net0,br=br0",
-                    "-device",
-                    "e1000,netdev=net1,mac=52:54:a9:4c:0b:80",
-                    "-netdev",
-                    "bridge,id=net1,br=br1"]);
+"#,
+        )
+        .unwrap();
+        assert_eq!(
+            config.gen_params("guest").unwrap(),
+            [
+                "-name",
+                "guest",
+                "-monitor",
+                "unix:/run/qemu/guest/monitor.sock,server,nowait",
+                "-serial",
+                "unix:/run/qemu/guest/serial.sock,server,nowait",
+                "-drive",
+                "if=pflash,format=raw,readonly,file=/usr/share/ovmf/x64/OVMF_CODE.fd",
+                "-drive",
+                "if=pflash,format=raw,file=/var/lib/qemu/guest/OVMF_VARS.fd",
+                "-enable-kvm",
+                "-cpu",
+                "host",
+                "-smp",
+                "sockets=1,cores=2",
+                "-m",
+                "4G",
+                "-drive",
+                "file=/dev/sdb,format=raw",
+                "-device",
+                "e1000,netdev=net0,mac=52:54:ff:be:28:bc",
+                "-netdev",
+                "bridge,id=net0,br=br0",
+                "-device",
+                "e1000,netdev=net1,mac=52:54:a9:4c:0b:80",
+                "-netdev",
+                "bridge,id=net1,br=br1"
+            ]
+        );
     }
 
     #[test]

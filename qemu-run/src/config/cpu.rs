@@ -1,3 +1,4 @@
+use serde::Deserialize;
 use std::borrow;
 
 #[derive(Debug, Default, Deserialize)]
@@ -28,8 +29,8 @@ impl Cpu {
 
 #[cfg(test)]
 mod tests {
-    use serde_yaml;
     use super::Cpu;
+    use serde_yaml;
 
     #[test]
     fn default() {
@@ -39,12 +40,16 @@ mod tests {
     #[test]
     fn all() {
         let cpu: Cpu = serde_yaml::from_str("{kvm: true, type: core2duo, cores: 2}").unwrap();
-        assert_eq!(cpu.gen_params(),
-                   ["-enable-kvm",
-                    "-cpu",
-                    "core2duo",
-                    "-smp",
-                    "sockets=1,cores=2"]);
+        assert_eq!(
+            cpu.gen_params(),
+            [
+                "-enable-kvm",
+                "-cpu",
+                "core2duo",
+                "-smp",
+                "sockets=1,cores=2"
+            ]
+        );
     }
 
     #[test]

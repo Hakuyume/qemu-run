@@ -1,15 +1,9 @@
-extern crate docopt;
-extern crate libusb;
-extern crate serde;
-#[macro_use]
-extern crate serde_derive;
-extern crate serde_yaml;
+mod config;
 
+use serde::Deserialize;
 use std::fs;
 use std::path;
 use std::process;
-
-mod config;
 
 const USAGE: &'static str = "
 Usage:

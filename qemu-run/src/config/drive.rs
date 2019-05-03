@@ -1,3 +1,4 @@
+use serde::Deserialize;
 use std::borrow;
 
 #[derive(Debug, Deserialize)]
@@ -33,8 +34,8 @@ impl Drive {
 
 #[cfg(test)]
 mod tests {
-    use serde_yaml;
     use super::Drive;
+    use serde_yaml;
 
     #[test]
     fn default() {
@@ -44,10 +45,12 @@ mod tests {
 
     #[test]
     fn all() {
-        let drive: Drive = serde_yaml::from_str("{file: /dev/sda, format: raw, discard: true}")
-            .unwrap();
-        assert_eq!(drive.gen_params(),
-                   ["-drive", "file=/dev/sda,format=raw,discard=on"]);
+        let drive: Drive =
+            serde_yaml::from_str("{file: /dev/sda, format: raw, discard: true}").unwrap();
+        assert_eq!(
+            drive.gen_params(),
+            ["-drive", "file=/dev/sda,format=raw,discard=on"]
+        );
     }
 
     #[test]
