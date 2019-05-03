@@ -12,7 +12,7 @@ pub struct Cpu {
 }
 
 impl Cpu {
-    pub fn gen_params(&self) -> Vec<Cow<str>> {
+    pub fn gen_params(&self) -> Vec<Cow<'_, str>> {
         let mut params = Vec::new();
         if self.kvm {
             params.push("-enable-kvm".into());

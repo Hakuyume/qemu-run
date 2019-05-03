@@ -15,7 +15,7 @@ enum Base {
 }
 
 impl Rtc {
-    pub fn gen_params(&self) -> Vec<Cow<str>> {
+    pub fn gen_params(&self) -> Vec<Cow<'_, str>> {
         if let Some(ref base) = self.base {
             let base = match base {
                 Base::Utc => "utc",

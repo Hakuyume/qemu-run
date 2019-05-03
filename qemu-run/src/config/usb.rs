@@ -6,7 +6,7 @@ use std::borrow::Cow;
 pub struct Usb(Option<Vec<(u16, u16)>>);
 
 impl Usb {
-    pub fn gen_params(&self) -> Result<Vec<Cow<str>>, Error> {
+    pub fn gen_params(&self) -> Result<Vec<Cow<'_, str>>, Error> {
         if let Some(ref ids) = self.0 {
             let mut params = vec_from!["-device", "nec-usb-xhci,id=xhci"];
 

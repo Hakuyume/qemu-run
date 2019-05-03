@@ -46,7 +46,7 @@ pub struct Config {
 }
 
 impl Config {
-    pub fn gen_params<'a>(&'a self, name: &'a str) -> Result<Vec<Cow<'a, str>>, Box<Error>> {
+    pub fn gen_params<'a>(&'a self, name: &'a str) -> Result<Vec<Cow<'a, str>>, Box<dyn Error>> {
         let mut params = vec_from![
             "-name",
             name,

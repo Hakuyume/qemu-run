@@ -9,7 +9,7 @@ pub enum Network {
 }
 
 impl Network {
-    pub fn gen_params(&self, name: &str, index: usize) -> Vec<Cow<str>> {
+    pub fn gen_params(&self, name: &str, index: usize) -> Vec<Cow<'_, str>> {
         let mac = {
             let digest = Sha256::digest(format!("{}:{}", name, index).as_bytes());
             format!(
