@@ -1,5 +1,5 @@
 use serde::Deserialize;
-use std::borrow;
+use std::borrow::Cow;
 
 #[derive(Debug, Default, Deserialize)]
 #[serde(deny_unknown_fields)]
@@ -12,7 +12,7 @@ pub struct Cpu {
 }
 
 impl Cpu {
-    pub fn gen_params(&self) -> Vec<borrow::Cow<str>> {
+    pub fn gen_params(&self) -> Vec<Cow<str>> {
         let mut params = Vec::new();
         if self.kvm {
             params.push("-enable-kvm".into());

@@ -1,5 +1,5 @@
 use serde::Deserialize;
-use std::borrow;
+use std::borrow::Cow;
 
 #[derive(Debug, Default, Deserialize)]
 #[serde(deny_unknown_fields)]
@@ -15,11 +15,11 @@ enum Base {
 }
 
 impl Rtc {
-    pub fn gen_params(&self) -> Vec<borrow::Cow<str>> {
+    pub fn gen_params(&self) -> Vec<Cow<str>> {
         if let Some(ref base) = self.base {
             let base = match base {
-                &Base::Utc => "utc",
-                &Base::Localtime => "localtime",
+                Base::Utc => "utc",
+                Base::Localtime => "localtime",
             };
             vec_from!["-rtc", format!("base={}", base)]
         } else {

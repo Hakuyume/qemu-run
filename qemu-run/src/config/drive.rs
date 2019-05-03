@@ -1,5 +1,5 @@
 use serde::Deserialize;
-use std::borrow;
+use std::borrow::Cow;
 
 #[derive(Debug, Deserialize)]
 #[serde(deny_unknown_fields)]
@@ -17,11 +17,11 @@ enum Format {
 }
 
 impl Drive {
-    pub fn gen_params(&self) -> Vec<borrow::Cow<str>> {
+    pub fn gen_params(&self) -> Vec<Cow<str>> {
         let mut param = format!("file={}", self.file);
         if let Some(ref format) = self.format {
             let format = match format {
-                &Format::Raw => "raw",
+                Format::Raw => "raw",
             };
             param += format!(",format={}", format).as_str();
         }

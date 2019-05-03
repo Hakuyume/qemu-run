@@ -1,6 +1,6 @@
 use serde::Deserialize;
 use sha2::{Digest, Sha256};
-use std::borrow;
+use std::borrow::Cow;
 
 #[derive(Debug, Deserialize)]
 #[serde(deny_unknown_fields, untagged)]
@@ -9,7 +9,7 @@ pub enum Network {
 }
 
 impl Network {
-    pub fn gen_params(&self, name: &str, index: usize) -> Vec<borrow::Cow<str>> {
+    pub fn gen_params(&self, name: &str, index: usize) -> Vec<Cow<str>> {
         let mac = {
             let digest = Sha256::digest(format!("{}:{}", name, index).as_bytes());
             format!(
@@ -19,7 +19,7 @@ impl Network {
         };
         let mut params = vec_from!["-device", format!("e1000,netdev=net{},mac={}", index, mac)];
         match self {
-            &Network::Bridge { ref bridge } => params.extend(vec_from![
+            Network::Bridge { bridge } => params.extend(vec_from![
                 "-netdev",
                 format!("bridge,id=net{},br={}", index, bridge)
             ]),

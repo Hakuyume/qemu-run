@@ -1,16 +1,16 @@
-use libusb;
+use libusb::{Context, Error};
 use serde::Deserialize;
-use std::borrow;
+use std::borrow::Cow;
 
 #[derive(Debug, Default, Deserialize)]
 pub struct Usb(Option<Vec<(u16, u16)>>);
 
 impl Usb {
-    pub fn gen_params(&self) -> Result<Vec<borrow::Cow<str>>, libusb::Error> {
+    pub fn gen_params(&self) -> Result<Vec<Cow<str>>, Error> {
         if let Some(ref ids) = self.0 {
             let mut params = vec_from!["-device", "nec-usb-xhci,id=xhci"];
 
-            let context = libusb::Context::new()?;
+            let context = Context::new()?;
             for device in context.devices()?.iter() {
                 if let Ok(desc) = device.device_descriptor() {
                     if ids

@@ -1,11 +1,15 @@
 mod config;
 
+use config::Config;
+use docopt::Docopt;
 use serde::Deserialize;
-use std::fs;
-use std::path;
-use std::process;
+use std::error::Error;
+use std::fs::File;
+use std::os::unix::process::CommandExt;
+use std::path::PathBuf;
+use std::process::Command;
 
-const USAGE: &'static str = "
+const USAGE: &str = "
 Usage:
   qemu-run [-d | --dry-run] [--name <name>] <config>
 
@@ -18,12 +22,12 @@ Options:
 struct Args {
     flag_dry_run: bool,
     flag_name: Option<String>,
-    arg_config: path::PathBuf,
+    arg_config: PathBuf,
 }
 
 fn main() {
     let mut command = {
-        let args: Args = docopt::Docopt::new(USAGE)
+        let args: Args = Docopt::new(USAGE)
             .and_then(|d| d.deserialize())
             .unwrap_or_else(|e| e.exit());
 
@@ -32,8 +36,8 @@ fn main() {
             None => args.arg_config.file_stem().unwrap().to_str().unwrap(),
         };
 
-        let config: config::Config = {
-            let reader = fs::File::open(&args.arg_config).unwrap();
+        let config: Config = {
+            let reader = File::open(&args.arg_config).unwrap();
             serde_yaml::from_reader(reader).unwrap()
         };
 
@@ -43,12 +47,10 @@ fn main() {
             return;
         }
 
-        let mut command = process::Command::new("qemu-system-x86_64");
-        command.args(params.iter().map(|p| p.as_ref()));
+        let mut command = Command::new("qemu-system-x86_64");
+        command.args(params.iter().map(AsRef::as_ref));
         command
     };
 
-    use std::error::Error;
-    use std::os::unix::process::CommandExt;
     panic!("{}", command.exec().description());
 }

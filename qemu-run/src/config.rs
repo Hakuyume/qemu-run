@@ -1,7 +1,3 @@
-use serde::Deserialize;
-use std::borrow;
-use std::error;
-
 macro_rules! vec_from {
     ($($x:expr),*) => {
         vec![$($x.into(),)*]
@@ -14,18 +10,27 @@ mod network;
 mod rtc;
 mod usb;
 
+use cpu::Cpu;
+use drive::Drive;
+use network::Network;
+use rtc::Rtc;
+use serde::Deserialize;
+use std::borrow::Cow;
+use std::error::Error;
+use usb::Usb;
+
 #[derive(Debug, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct Config {
     #[serde(default)]
     uefi: bool,
     #[serde(default)]
-    cpu: cpu::Cpu,
+    cpu: Cpu,
     memory: Option<String>,
     #[serde(default)]
-    drive: Vec<drive::Drive>,
+    drive: Vec<Drive>,
     #[serde(default)]
-    network: Vec<network::Network>,
+    network: Vec<Network>,
     #[serde(default)]
     spice: bool,
     #[serde(default)]
@@ -33,18 +38,15 @@ pub struct Config {
     #[serde(default)]
     spice_guest: bool,
     #[serde(default)]
-    rtc: rtc::Rtc,
+    rtc: Rtc,
     #[serde(default)]
-    usb: usb::Usb,
+    usb: Usb,
     #[serde(default)]
     option: Vec<Vec<String>>,
 }
 
 impl Config {
-    pub fn gen_params<'a>(
-        &'a self,
-        name: &'a str,
-    ) -> Result<Vec<borrow::Cow<'a, str>>, Box<error::Error>> {
+    pub fn gen_params<'a>(&'a self, name: &'a str) -> Result<Vec<Cow<'a, str>>, Box<Error>> {
         let mut params = vec_from![
             "-name",
             name,
