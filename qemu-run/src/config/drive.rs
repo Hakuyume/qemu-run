@@ -7,6 +7,8 @@ pub struct Drive {
     file: String,
     format: Option<Format>,
     #[serde(default)]
+    virtio: bool,
+    #[serde(default)]
     discard: bool,
 }
 
@@ -24,6 +26,9 @@ impl Drive {
                 Format::Raw => "raw",
             };
             param += format!(",format={}", format).as_str();
+        }
+        if self.virtio {
+            param += ",if=virtio";
         }
         if self.discard {
             param += ",discard=on";

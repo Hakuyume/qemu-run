@@ -3,8 +3,16 @@ use sha2::{Digest, Sha256};
 use std::borrow::Cow;
 
 #[derive(Debug, Deserialize)]
+pub struct Network {
+    #[serde(flatten)]
+    netdev: NetDev,
+    #[serde(default)]
+    virtio: bool,
+}
+
+#[derive(Debug, Deserialize)]
 #[serde(deny_unknown_fields, untagged)]
-pub enum Network {
+enum NetDev {
     Bridge { bridge: String },
 }
 
@@ -17,9 +25,21 @@ impl Network {
                 digest[0], digest[1], digest[2], digest[3]
             )
         };
-        let mut params = vec_from!["-device", format!("e1000,netdev=net{},mac={}", index, mac)];
-        match self {
-            Network::Bridge { bridge } => params.extend(vec_from![
+        let mut params = vec_from![
+            "-device",
+            format!(
+                "{},netdev=net{},mac={}",
+                if self.virtio {
+                    "virtio-net-pci"
+                } else {
+                    "e1000"
+                },
+                index,
+                mac
+            )
+        ];
+        match &self.netdev {
+            NetDev::Bridge { bridge } => params.extend(vec_from![
                 "-netdev",
                 format!("bridge,id=net{},br={}", index, bridge)
             ]),
