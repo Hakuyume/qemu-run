@@ -1,5 +1,5 @@
 pkgname=qemu-run
-pkgver=0.2.7
+pkgver=0.2.8
 pkgrel=1
 pkgdesc='A simple wrapper for QEMU'
 arch=('x86_64')

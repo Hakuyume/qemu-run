@@ -1,6 +1,6 @@
 [package]
 name = "qemu-run"
-version = "0.2.7"
+version = "0.2.8"
 authors = ["Toru Ogawa <Hakuyume@users.noreply.github.com>"]
 edition = "2018"
 
